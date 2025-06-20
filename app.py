@@ -16,13 +16,8 @@ from prediction_api import DRCPredictionAPI
 
 app = Flask(__name__)
 
-# Configurar CORS para produção
-CORS(app, origins=[
-    "http://localhost:3000",      # Desenvolvimento local
-    "https://*.vercel.app",       # Frontend Vercel
-    "https://*.vercel.com",       # Frontend Vercel  
-    "https://*.supabase.co",      # Supabase (se necessário)
-], supports_credentials=True)
+# Configurar CORS para produção - LIBERADO PARA DEBUG
+CORS(app, origins="*", supports_credentials=False)
 
 # Inicializar API original
 try:
@@ -32,9 +27,14 @@ except Exception as e:
     print(f"❌ Erro ao inicializar API: {e}")
     drc_api = None
 
-@app.route('/api/health', methods=['GET'])
+@app.route('/api/health', methods=['GET', 'OPTIONS'])
 def health_check():
     """Verifica saúde da API"""
+    if request.method == 'OPTIONS':
+        return '', 200
+        
+    print(f"🔍 Health check chamado de: {request.headers.get('Origin', 'desconhecido')}")
+    
     if drc_api is None:
         return jsonify({'status': 'error', 'message': 'API não inicializada'}), 500
     
@@ -42,7 +42,8 @@ def health_check():
         'status': 'healthy',
         'message': 'API DRC funcionando',
         'model_loaded': drc_api.model is not None,
-        'preprocessor_loaded': drc_api.preprocessor is not None
+        'preprocessor_loaded': drc_api.preprocessor is not None,
+        'cors_test': 'OK'
     })
 
 @app.route('/api/model-info', methods=['GET'])
