@@ -1,0 +1,178 @@
+{
+  "api_name": "DRC Prediction API",
+  "version": "2.0",
+  "description": "API para predição de Doença Renal Crônica usando modelo neural multi-task",
+  "endpoint": {
+    "method": "POST",
+    "path": "/predict",
+    "description": "Faz predição de DRC para um paciente"
+  },
+  "input_format": {
+    "required_fields": {
+      "idade": {
+        "type": "integer",
+        "range": [18, 120],
+        "description": "Idade do paciente em anos"
+      },
+      "sexo": {
+        "type": "string",
+        "values": ["MASCULINO", "FEMININO"],
+        "description": "Sexo do paciente"
+      },
+      "cor2": {
+        "type": "integer",
+        "values": [0, 1],
+        "description": "Cor derivada automaticamente (0=não-minoritário, 1=minoritário)"
+      },
+      "imc": {
+        "type": "float",
+        "range": [10.0, 70.0],
+        "description": "Índice de Massa Corporal"
+      },
+      "cc": {
+        "type": "integer",
+        "range": [30, 250],
+        "description": "Circunferência da Cintura em cm"
+      },
+      "rcq": {
+        "type": "float",
+        "range": [0.3, 3.0],
+        "description": "Relação Cintura-Quadril"
+      },
+      "pas": {
+        "type": "integer",
+        "range": [60, 300],
+        "description": "Pressão Arterial Sistólica em mmHg"
+      },
+      "pad": {
+        "type": "integer",
+        "range": [30, 200],
+        "description": "Pressão Arterial Diastólica em mmHg"
+      },
+      "fuma": {
+        "type": "boolean",
+        "description": "Se o paciente fuma"
+      },
+      "realizaExercicio": {
+        "type": "boolean",
+        "description": "Se o paciente realiza exercício"
+      },
+      "bebe": {
+        "type": "boolean",
+        "description": "Se o paciente consome álcool"
+      },
+      "dm": {
+        "type": "boolean",
+        "description": "Se o paciente tem Diabetes Mellitus"
+      },
+      "has": {
+        "type": "boolean",
+        "description": "Se o paciente tem Hipertensão Arterial Sistêmica"
+      }
+    }
+  },
+  "output_format": {
+    "prediction": {
+      "type": "integer",
+      "range": [0, 5],
+      "description": "Índice da classe predita (0=G1, 1=G2, ..., 5=G5)"
+    },
+    "probability": {
+      "type": "float",
+      "range": [0.0, 1.0],
+      "description": "Probabilidade da classe predita"
+    },
+    "confidence": {
+      "type": "float",
+      "range": [0.0, 1.0],
+      "description": "Confiança global da predição"
+    },
+    "probabilities": {
+      "type": "array[float]",
+      "length": 6,
+      "description": "Probabilidades de todas as classes"
+    },
+    "classNames": {
+      "type": "array[string]",
+      "values": ["G1 (≥90)", "G2 (60-89)", "G3a (45-59)", "G3b (30-44)", "G4 (15-29)", "G5 (<15)"],
+      "description": "Nomes das classes DRC"
+    },
+    "creatinina": {
+      "type": "float",
+      "range": [0.1, 25.0],
+      "description": "Predição de creatinina em mg/dL"
+    },
+    "tfg": {
+      "type": "float",
+      "range": [5.0, 200.0],
+      "description": "Predição de TFG em mL/min/1.73m²"
+    },
+    "modelInfo": {
+      "name": "string",
+      "version": "string",
+      "accuracy": "float",
+      "description": "Informações do modelo"
+    }
+  },
+  "example_request": {
+    "idade": 45,
+    "sexo": "MASCULINO",
+    "cor2": 1,
+    "imc": 25.5,
+    "cc": 85,
+    "rcq": 0.9,
+    "pas": 130,
+    "pad": 80,
+    "fuma": false,
+    "realizaExercicio": true,
+    "bebe": false,
+    "dm": false,
+    "has": true
+  },
+  "example_response": {
+    "prediction": 4,
+    "probability": 0.762,
+    "confidence": 0.689,
+    "probabilities": [0.024, 0.061, 0.005, 0.145, 0.762, 0.003],
+    "classNames": ["G1 (≥90)", "G2 (60-89)", "G3a (45-59)", "G3b (30-44)", "G4 (15-29)", "G5 (<15)"],
+    "creatinina": 1.77,
+    "tfg": 23.5,
+    "modelInfo": {
+      "name": "DRC Multi-Task Neural Network",
+      "version": "2.0",
+      "accuracy": 0.94
+    }
+  },
+  "error_responses": {
+    "validation_error": {
+      "prediction": 0,
+      "probability": 0.0,
+      "confidence": 0.0,
+      "probabilities": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      "classNames": ["G1 (≥90)", "G2 (60-89)", "G3a (45-59)", "G3b (30-44)", "G4 (15-29)", "G5 (<15)"],
+      "creatinina": 1.0,
+      "tfg": 90.0,
+      "modelInfo": {
+        "name": "DRC Multi-Task Neural Network",
+        "version": "2.0",
+        "accuracy": 0.0
+      },
+      "error": "Campo obrigatório ausente: idade"
+    }
+  },
+  "quality_metrics": {
+    "creatinina_r2": 0.9410,
+    "tfg_r2": 0.8668,
+    "classification_accuracy": 0.8913,
+    "sensitivity_critical_classes": 1.0,
+    "kappa": 0.8696,
+    "clinical_consistency": 0.667
+  },
+  "notes": {
+    "preprocessing": "Dados são automaticamente normalizados usando o mesmo preprocessador do treinamento",
+    "cor_derivation": "COR2 é derivado automaticamente no frontend baseado em COR original",
+    "model_type": "Rede neural multi-task com arquitetura [256, 128, 64]",
+    "training_data": "Treinado com 690 amostras balanceadas usando técnicas médicas avançadas",
+    "medical_validation": "Modelo passou por avaliação médica rigorosa com métricas específicas"
+  }
+}
