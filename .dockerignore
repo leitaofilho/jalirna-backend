@@ -1,0 +1,39 @@
+# jaliRNA Docker - Ignorar arquivos desnecessários
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+.git/
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+test_*.py
+*_test.py
+
+# Documentation
+docs/
+*.md
+
+# Keep model files
+!model_production/
+!model_production/*.pth
+!model_production/*.joblib
