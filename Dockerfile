@@ -1,5 +1,5 @@
-# jaliRNA Backend - Railway Optimized Docker
-FROM python:3.11-slim
+# jaliRNA Backend - Railway Stable Docker
+FROM python:3.10-slim
 
 # Metadados
 LABEL maintainer="jaliRNA Team"
