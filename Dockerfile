@@ -1,45 +1,54 @@
-# jaliRNA Backend - Railway Stable Docker
-FROM python:3.10-slim
+# jaliRNA Backend - SOLUÇÃO DEFINITIVA RAILWAY
+FROM python:3.11-slim
 
 # Metadados
 LABEL maintainer="jaliRNA Team"
-LABEL description="jaliRNA DRC Prediction API - PyTorch Neural Network"
-LABEL version="2.0"
+LABEL description="jaliRNA DRC Prediction API - DEFINITIVO"
+LABEL version="2.0-final"
 
-# Variáveis de ambiente para Python
+# Variáveis de ambiente otimizadas
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     FLASK_APP=app.py \
     FLASK_ENV=production \
-    PORT=8000
+    PORT=8000 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Instalar dependências do sistema
+# Instalar dependências do sistema essenciais
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Criar diretório de trabalho
+# Diretório de trabalho
 WORKDIR /app
 
-# Copiar requirements primeiro (otimização cache)
+# Copiar requirements
 COPY requirements.txt .
 
-# Atualizar pip e instalar dependências
-RUN pip install --no-cache-dir --upgrade pip==23.3.1 && \
-    pip install --no-cache-dir --timeout 1000 -r requirements.txt
+# INSTALAÇÃO FORÇADA - SOLUÇÃO DEFINITIVA
+RUN pip install --upgrade pip==23.3.1 && \
+    pip install --force-reinstall --no-deps numpy==1.26.2 && \
+    pip install --force-reinstall --no-deps torch==2.3.1 && \
+    pip install -r requirements.txt && \
+    pip check
 
-# Copiar código da aplicação
+# Verificar instalação
+RUN python -c "import numpy; import torch; print('✅ NumPy:', numpy.__version__); print('✅ PyTorch:', torch.__version__)"
+
+# Copiar aplicação
 COPY . .
 
 # Expor porta
 EXPOSE $PORT
 
-# Health check otimizado
-HEALTHCHECK --interval=30s --timeout=30s --start-period=90s --retries=3 \
+# Health check robusto
+HEALTHCHECK --interval=45s --timeout=30s --start-period=120s --retries=3 \
     CMD curl -f http://localhost:$PORT/api/health || exit 1
 
-# Comando de produção otimizado para Railway
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "120", "--preload", "--max-requests", "1000", "app:app"]
+# Comando final otimizado
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "180", "--preload", "app:app"]
