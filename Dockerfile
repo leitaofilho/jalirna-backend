@@ -1,5 +1,5 @@
-# jaliRNA Backend - Docker Production Image
-FROM python:3.12-slim
+# jaliRNA Backend - Railway Optimized Docker
+FROM python:3.11-slim
 
 # Metadados
 LABEL maintainer="jaliRNA Team"
@@ -18,32 +18,28 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Criar usuário não-root para segurança
-RUN useradd --create-home --shell /bin/bash jalirna
+# Criar diretório de trabalho
 WORKDIR /app
 
-# Copiar requirements primeiro (cache Docker)
+# Copiar requirements primeiro (otimização cache)
 COPY requirements.txt .
 
-# Instalar dependências Python
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Atualizar pip e instalar dependências
+RUN pip install --no-cache-dir --upgrade pip==23.3.1 && \
+    pip install --no-cache-dir --timeout 1000 -r requirements.txt
 
 # Copiar código da aplicação
 COPY . .
 
-# Dar permissões corretas
-RUN chown -R jalirna:jalirna /app
-USER jalirna
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:$PORT/api/health || exit 1
-
 # Expor porta
 EXPOSE $PORT
 
-# Comando de produção
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "60", "--preload", "app:app"]
+# Health check otimizado
+HEALTHCHECK --interval=30s --timeout=30s --start-period=90s --retries=3 \
+    CMD curl -f http://localhost:$PORT/api/health || exit 1
+
+# Comando de produção otimizado para Railway
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "120", "--preload", "--max-requests", "1000", "app:app"]
